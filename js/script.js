@@ -2,87 +2,34 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded - Initializing splash screen...');
     
-    // Initialize all functionality
+    // Initialize all functionality (except music player - it will be initialized after splash screen)
     initSplashScreen();
     initNavigation();
     initGallery();
-    initMusicPlayer();
     initContactForm();
     initScrollAnimations();
     initSmoothScrolling();
     initVideo();
     
-    // Music controls
+    // Prepare audio during splash screen (but don't initialize player yet)
     const backgroundMusic = document.getElementById('background-music');
     const musicToggle = document.getElementById('music-toggle');
-    let musicStarted = false;
     
-    // Set initial volume and show music button
     if (backgroundMusic) {
         backgroundMusic.volume = 0.5;
         backgroundMusic.muted = false;
-        
-        // Add debugging for audio loading
-        backgroundMusic.addEventListener('loadstart', () => {
-            console.log('Audio loading started');
-        });
-        
-        backgroundMusic.addEventListener('canplay', () => {
-            console.log('Audio can play');
-        });
-        
-        backgroundMusic.addEventListener('error', (e) => {
-            console.error('Audio error:', e);
-        });
+        backgroundMusic.load(); // Ensure audio is loaded
+        console.log('Audio prepared during splash screen');
     }
     
-    // Show music button immediately but position it properly
+    // Show music button but keep it hidden during splash screen
     if (musicToggle) {
-        musicToggle.style.display = 'flex';
+        musicToggle.style.display = 'none'; // Hide during splash screen
         musicToggle.style.position = 'fixed';
         musicToggle.style.bottom = '20px';
         musicToggle.style.right = '20px';
         musicToggle.style.zIndex = '1000';
     }
-    
-    // Function to start music
-    const startMusic = () => {
-        if (!backgroundMusic || !musicToggle) return;
-        
-        // Show loading state
-        musicToggle.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
-        backgroundMusic.play().then(() => {
-            musicToggle.classList.add('playing');
-            musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
-            musicToggle.style.animation = '';
-            musicStarted = true;
-            console.log('Music started successfully');
-        }).catch(e => {
-            console.log('Music play failed:', e);
-            // Show play button if autoplay fails
-            musicToggle.classList.remove('playing');
-            musicToggle.innerHTML = '<i class="fas fa-music"></i>';
-            // Add pulsing animation to indicate user should click
-            musicToggle.style.animation = 'pulse 2s infinite';
-            musicStarted = false;
-        });
-    };
-    
-    // Remove user interaction handlers - we want pure autoplay after splash
-    
-    // Handle audio loading events
-    if (backgroundMusic) {
-        backgroundMusic.addEventListener('canplaythrough', () => {
-            console.log('Audio loaded and ready to play');
-        });
-        
-        backgroundMusic.addEventListener('loadeddata', () => {
-            console.log('Audio data loaded');
-        });
-    }
-    
-    // Remove immediate music start - we only want it after splash screen
 });
 
 // Splash Screen
@@ -138,42 +85,48 @@ function initSplashScreen() {
             musicToggle.style.animation = '';
             console.log('Music started successfully!');
             
-            // Hide splash screen and show main content
-            splashScreen.classList.add('fade-out');
-            setTimeout(() => {
-                splashScreen.style.display = 'none';
-                // Show navigation bar
-                navbar.classList.add('visible');
-                
-                // Ensure music button is visible and properly positioned
-                if (musicToggle) {
-                    musicToggle.style.display = 'flex';
-                    musicToggle.style.position = 'fixed';
-                    musicToggle.style.bottom = '20px';
-                    musicToggle.style.right = '20px';
-                    musicToggle.style.zIndex = '1000';
-                }
-            }, 500);
+                         // Hide splash screen and show main content
+             splashScreen.classList.add('fade-out');
+             setTimeout(() => {
+                 splashScreen.style.display = 'none';
+                 // Show navigation bar
+                 navbar.classList.add('visible');
+                 
+                 // Ensure music button is visible and properly positioned
+                 if (musicToggle) {
+                     musicToggle.style.display = 'flex';
+                     musicToggle.style.position = 'fixed';
+                     musicToggle.style.bottom = '20px';
+                     musicToggle.style.right = '20px';
+                     musicToggle.style.zIndex = '1000';
+                 }
+                 
+                 // Re-initialize music player after splash screen is hidden
+                 initMusicPlayer();
+             }, 500);
             
         }).catch(e => {
             console.log('Music start failed:', e);
-            // Still proceed to main site even if music fails
-            splashScreen.classList.add('fade-out');
-            setTimeout(() => {
-                splashScreen.style.display = 'none';
-                navbar.classList.add('visible');
-                
-                if (musicToggle) {
-                    musicToggle.style.display = 'flex';
-                    musicToggle.style.position = 'fixed';
-                    musicToggle.style.bottom = '20px';
-                    musicToggle.style.right = '20px';
-                    musicToggle.style.zIndex = '1000';
-                    musicToggle.classList.remove('playing');
-                    musicToggle.innerHTML = '<i class="fas fa-music"></i>';
-                    musicToggle.style.animation = 'pulse 2s infinite';
-                }
-            }, 500);
+                         // Still proceed to main site even if music fails
+             splashScreen.classList.add('fade-out');
+             setTimeout(() => {
+                 splashScreen.style.display = 'none';
+                 navbar.classList.add('visible');
+                 
+                 if (musicToggle) {
+                     musicToggle.style.display = 'flex';
+                     musicToggle.style.position = 'fixed';
+                     musicToggle.style.bottom = '20px';
+                     musicToggle.style.right = '20px';
+                     musicToggle.style.zIndex = '1000';
+                     musicToggle.classList.remove('playing');
+                     musicToggle.innerHTML = '<i class="fas fa-music"></i>';
+                     musicToggle.style.animation = 'pulse 2s infinite';
+                 }
+                 
+                 // Re-initialize music player after splash screen is hidden
+                 initMusicPlayer();
+             }, 500);
         });
     };
     
@@ -346,9 +299,10 @@ function initGallery() {
 function initMusicPlayer() {
     const musicToggle = document.getElementById('music-toggle');
     const backgroundMusic = document.getElementById('background-music');
-    let isPlaying = false;
 
     if (!musicToggle || !backgroundMusic) return;
+
+    console.log('Initializing music player...');
 
     // Set initial volume and ensure audio is ready
     backgroundMusic.volume = 0.5;
@@ -360,21 +314,18 @@ function initMusicPlayer() {
         
         if (backgroundMusic.paused) {
             backgroundMusic.play().then(() => {
-                isPlaying = true;
                 musicToggle.classList.add('playing');
                 musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
                 musicToggle.style.animation = '';
                 console.log('Music started via toggle');
             }).catch(e => {
                 console.log('Toggle play failed:', e);
-                isPlaying = false;
                 musicToggle.classList.remove('playing');
                 musicToggle.innerHTML = '<i class="fas fa-music"></i>';
                 musicToggle.style.animation = 'pulse 2s infinite';
             });
         } else {
             backgroundMusic.pause();
-            isPlaying = false;
             musicToggle.classList.remove('playing');
             musicToggle.innerHTML = '<i class="fas fa-music"></i>';
             musicToggle.style.animation = '';
@@ -382,10 +333,28 @@ function initMusicPlayer() {
         }
     };
 
-    // Remove autoplay setup - we only want music after splash screen
-
-    // Music toggle button click handler
-    musicToggle.addEventListener('click', toggleMusic);
+    // Simple approach - just add the event listener directly
+    musicToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Music button clicked!');
+        toggleMusic();
+    });
+    
+    // Also add touch event listener for mobile
+    musicToggle.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Music button touched!');
+        toggleMusic();
+    });
+    
+    // Ensure the button is clickable
+    musicToggle.style.pointerEvents = 'auto';
+    musicToggle.style.cursor = 'pointer';
+    musicToggle.style.zIndex = '10000'; // Ensure it's on top
+    
+    console.log('Music toggle event listener attached to:', musicToggle);
 
     // Handle audio ended (loop)
     backgroundMusic.addEventListener('ended', () => {
@@ -395,7 +364,6 @@ function initMusicPlayer() {
 
     // Update playing state when audio plays/pauses
     backgroundMusic.addEventListener('play', () => {
-        isPlaying = true;
         musicToggle.classList.add('playing');
         musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
         musicToggle.style.animation = '';
@@ -403,7 +371,6 @@ function initMusicPlayer() {
     });
 
     backgroundMusic.addEventListener('pause', () => {
-        isPlaying = false;
         musicToggle.classList.remove('playing');
         musicToggle.innerHTML = '<i class="fas fa-music"></i>';
         console.log('Music pause event triggered');
