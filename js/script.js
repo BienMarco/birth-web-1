@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initContactForm();
     initScrollAnimations();
     initSmoothScrolling();
+    initVideo();
     
     // Music controls
     const backgroundMusic = document.getElementById('background-music');
@@ -677,4 +678,163 @@ const notificationStyles = `
 // Inject notification styles
 const styleSheet = document.createElement('style');
 styleSheet.textContent = notificationStyles;
-document.head.appendChild(styleSheet); 
+document.head.appendChild(styleSheet);
+
+// Video initialization for all mobile devices
+function initVideo() {
+    const video = document.querySelector('.debut-video');
+    if (!video) return;
+    
+    console.log('Initializing video for all mobile devices...');
+    
+    // Detect mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    
+    console.log('Device detection:', { isMobile, isIOS, isAndroid });
+    
+    // Set video properties for all mobile devices
+    video.muted = true;
+    video.playsInline = true;
+    video.webkitPlaysInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    
+    // Additional properties for better mobile compatibility
+    video.preload = 'metadata';
+    video.controls = false;
+    
+    // Force video to load
+    video.load();
+    
+    // Handle video loading events
+    video.addEventListener('loadstart', () => {
+        console.log('Video loading started');
+    });
+    
+    video.addEventListener('loadedmetadata', () => {
+        console.log('Video metadata loaded');
+        // Try to play video after metadata is loaded
+        attemptVideoPlay();
+    });
+    
+    video.addEventListener('canplay', () => {
+        console.log('Video can play');
+    });
+    
+    video.addEventListener('canplaythrough', () => {
+        console.log('Video can play through');
+        // Try to play again when fully loaded
+        attemptVideoPlay();
+    });
+    
+    video.addEventListener('error', (e) => {
+        console.error('Video error:', e);
+    });
+    
+    // Handle video pause/play events
+    video.addEventListener('pause', () => {
+        console.log('Video paused');
+    });
+    
+    video.addEventListener('play', () => {
+        console.log('Video playing');
+    });
+    
+    // Function to attempt video playback
+    function attemptVideoPlay() {
+        if (video.paused) {
+            video.play().then(() => {
+                console.log('Video started playing successfully');
+            }).catch(e => {
+                console.log('Video autoplay failed:', e);
+                // Don't add multiple click handlers
+                if (!document.body.hasAttribute('data-video-click-handler')) {
+                    document.body.setAttribute('data-video-click-handler', 'true');
+                    document.addEventListener('click', () => {
+                        video.play().catch(e => console.log('Video play on click failed:', e));
+                    }, { once: true });
+                }
+            });
+        }
+    }
+    
+    // Add touch event handlers for mobile devices
+    video.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (video.paused) {
+            video.play().catch(e => console.log('Video play on touch failed:', e));
+        }
+    }, { passive: false });
+    
+    // Add tap event handler for better mobile support
+    video.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (video.paused) {
+            video.play().catch(e => console.log('Video play on touchend failed:', e));
+        }
+    }, { passive: false });
+    
+    // Add click handler for non-touch devices
+    video.addEventListener('click', () => {
+        if (video.paused) {
+            video.play().catch(e => console.log('Video play on click failed:', e));
+        }
+    });
+    
+    // Ensure video plays when it comes into view
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && video.paused) {
+                video.play().catch(e => console.log('Video play on intersection failed:', e));
+            }
+        });
+    }, { threshold: 0.3 });
+    
+    observer.observe(video);
+    
+    // Additional mobile-specific handling
+    if (isMobile) {
+        // Handle orientation change
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                if (video.paused) {
+                    video.play().catch(e => console.log('Video play after orientation change failed:', e));
+                }
+            }, 100);
+        });
+        
+        // Handle visibility change (when app goes to background)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && video.paused) {
+                setTimeout(() => {
+                    video.play().catch(e => console.log('Video play after visibility change failed:', e));
+                }, 100);
+            }
+        });
+        
+        // Handle page focus
+        window.addEventListener('focus', () => {
+            if (video.paused) {
+                setTimeout(() => {
+                    video.play().catch(e => console.log('Video play after focus failed:', e));
+                }, 100);
+            }
+        });
+    }
+    
+    // Fallback: Try to play video after a delay
+    setTimeout(() => {
+        if (video.paused) {
+            attemptVideoPlay();
+        }
+    }, 2000);
+    
+    // Additional fallback for stubborn devices
+    setTimeout(() => {
+        if (video.paused) {
+            attemptVideoPlay();
+        }
+    }, 5000);
+} 
