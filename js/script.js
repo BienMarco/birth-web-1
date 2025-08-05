@@ -204,6 +204,10 @@ function initNavigation() {
     const navToggle = document.getElementById('nav-toggle');
     const navMenu = document.getElementById('nav-menu');
     const navLinks = document.querySelectorAll('.nav-link');
+    const navbar = document.querySelector('.navbar');
+    
+    let lastScrollTop = 0;
+    let scrollThreshold = 100;
 
     // Mobile menu toggle
     navToggle.addEventListener('click', () => {
@@ -219,16 +223,39 @@ function initNavigation() {
         });
     });
 
-    // Navbar scroll effect
+    // Keep navbar always visible with enhanced styling (only after splash screen)
     window.addEventListener('scroll', () => {
-        const navbar = document.querySelector('.navbar');
-        if (window.scrollY > 100) {
-            navbar.style.background = 'linear-gradient(135deg, #1a1a1a, #2c2c2c, #1a1a1a)';
-            navbar.style.boxShadow = '0 4px 40px rgba(0, 0, 0, 0.3)';
+        const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const splashScreen = document.getElementById('splash-screen');
+        
+        // Only show navbar if splash screen is hidden
+        if (splashScreen && splashScreen.style.display === 'none') {
+            // Always keep navbar visible
+            navbar.classList.remove('navbar-hidden');
+            navbar.classList.add('navbar-visible');
+            navbar.style.transform = 'translateY(0)';
+            navbar.style.opacity = '1';
+            navbar.style.visibility = 'visible';
+            
+            // Update background and shadow based on scroll position for better visibility
+            if (currentScrollTop > 100) {
+                navbar.style.background = 'linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(44, 44, 44, 0.95), rgba(26, 26, 26, 0.95))';
+                navbar.style.boxShadow = '0 4px 40px rgba(0, 0, 0, 0.4)';
+                navbar.style.backdropFilter = 'blur(20px)';
+            } else {
+                navbar.style.background = 'linear-gradient(135deg, rgba(26, 26, 26, 0.9), rgba(44, 44, 44, 0.9), rgba(26, 26, 26, 0.9))';
+                navbar.style.boxShadow = '0 2px 30px rgba(0, 0, 0, 0.3)';
+                navbar.style.backdropFilter = 'blur(15px)';
+            }
         } else {
-            navbar.style.background = 'linear-gradient(135deg, #1a1a1a, #2c2c2c, #1a1a1a)';
-            navbar.style.boxShadow = '0 2px 30px rgba(0, 0, 0, 0.2)';
+            // Hide navbar during splash screen
+            navbar.classList.add('navbar-hidden');
+            navbar.classList.remove('navbar-visible');
+            navbar.style.opacity = '0';
+            navbar.style.visibility = 'hidden';
         }
+        
+        lastScrollTop = currentScrollTop;
     });
 }
 
