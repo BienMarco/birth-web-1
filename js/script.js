@@ -760,28 +760,11 @@ function initVideo() {
         }
     }
     
-    // Add touch event handlers for mobile devices
-    video.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (video.paused) {
-            video.play().catch(e => console.log('Video play on touch failed:', e));
-        }
-    }, { passive: false });
+         // Remove touch event handlers to prevent interference with scrolling
+         // The video will autoplay and loop without user interaction
     
-    // Add tap event handler for better mobile support
-    video.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        if (video.paused) {
-            video.play().catch(e => console.log('Video play on touchend failed:', e));
-        }
-    }, { passive: false });
-    
-    // Add click handler for non-touch devices
-    video.addEventListener('click', () => {
-        if (video.paused) {
-            video.play().catch(e => console.log('Video play on click failed:', e));
-        }
-    });
+    // Remove click handler to prevent interference with scrolling
+    // The video will autoplay and loop without user interaction
     
     // Ensure video plays when it comes into view
     const observer = new IntersectionObserver((entries) => {
